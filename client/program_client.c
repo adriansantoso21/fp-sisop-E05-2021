@@ -97,8 +97,6 @@ void command(char *msg, int client_fd, const char *user_name) {
     }
 
     else if(strstr(temp, "CREATE TABLE") != NULL ){
-        strcat(temp, " ");
-        strcat(temp, user_name);
         send(client_fd, temp, strlen(temp), 0); 
         read(client_fd, buffer, 1024);
         printf("%s\n", buffer);
@@ -115,8 +113,13 @@ void command(char *msg, int client_fd, const char *user_name) {
     }
 
     else if(strstr(temp, "DROP TABLE") != NULL ){
-        strcat(temp, " ");
-        strcat(temp, user_name);
+        send(client_fd, temp, strlen(temp), 0); 
+        read(client_fd, buffer, 1024);
+        printf("%s\n", buffer);
+        memset(buffer, 0, sizeof(buffer));
+    }
+
+    else if(strstr(temp, "DELETE FROM") != NULL ){
         send(client_fd, temp, strlen(temp), 0); 
         read(client_fd, buffer, 1024);
         printf("%s\n", buffer);
