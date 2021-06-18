@@ -381,10 +381,21 @@ void* main_service(void *arg) {
                 else {
                     // Hapus semua file di dalamnya semua
                     sprintf(temp, "/home/adr01/Documents/FP/database/databases/%s",db);
+                    struct dirent *dp;
+   	                DIR *dir = opendir(temp);
 
+                    while ((dp = readdir(dir)) != NULL) {
+                        char pathFile[3000];
+                        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0) {
+                            if(dp->d_type == DT_REG) {
+                                sprintf(pathFile, "/home/adr01/Documents/FP/database/databases/%s/%s",db,dp->d_name);
+                                int hasil = remove(pathFile);
+                                memset(pathFile, 0, sizeof(pathFile));
+                            }
+                        }
+                    }
 
                     // Hapus database (rmdir dan array nya)
-                    
                     int status = rmdir(temp);
                     memset(temp, 0, sizeof(temp));
 
@@ -521,6 +532,51 @@ void* main_service(void *arg) {
                     else {
                         send(socket, "Table gagal terhapus", strlen("Table gagal terhapus"), 0);
                     }
+                }
+            }
+        }
+
+        else if(strstr(req, "DELETE FROM") != NULL){
+            char *token = strtok(req, " ");
+            int a = -1, c = -1, jumlah_kolom = -1;
+            bool flag = true;
+            char nama_table[1000];
+            memset(nama_table, 0, sizeof(nama_table));
+
+            // Mengecek apakah db sudah ada
+            if(strcmp(db_sekarang, "") == 0 || strlen(db_sekarang) == 0) {
+                send(socket, "Tolong pilih database terlebih dahulu", strlen("Tolong pilih database terlebih dahulu"), 0);  
+            }
+            else {
+                // Mengambil table 
+                while( token != NULL ) {
+                    ++a;
+                    if(a == 2) strcpy(nama_table, token);
+                    token = strtok(NULL, " ");
+                }
+
+                //Mengecek apakah file sudah ada
+                for(int b=0; b<=jumlah_db; b++){
+                    if( strcmp(client_file[b].db, db_sekarang) == 0 && strcmp(client_file[b].namaFile, nama_table) == 0){
+                        flag = false;
+                    } 
+                }
+
+                if(flag){
+                    send(socket, "Maaf table tidak ada", strlen("Maaf table tidak ada"), 0);
+                }
+                else {
+                    // Menghapus isi file nya 
+                    sprintf(temp, "/home/adr01/Documents/FP/database/databases/%s/%s.tsv", db_sekarang,nama_table);
+                    
+                    FILE *f1;
+                    f1 = fopen(temp,"w");
+                    fprintf(f1," ");
+                    fclose(f1);
+                    
+                    memset(temp, 0, sizeof(temp));
+                    send(socket, "Isi table berhasil dihapus", strlen("Isi table berhasil dihapus"), 0);
+
                 }
             }
         }
